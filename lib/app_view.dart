@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tp_bank/core/providers/user_provider.dart';
-import 'package:tp_bank/screens/home_screen.dart';
 import 'package:tp_bank/screens/login_screen.dart';
 
 class MyAppView extends StatelessWidget {

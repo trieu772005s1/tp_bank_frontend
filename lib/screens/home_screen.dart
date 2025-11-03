@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:tp_bank/screens/card_screen.dart';
 import 'package:tp_bank/screens/history_screen.dart';
 import 'package:tp_bank/screens/info_account_screen.dart';
+import 'package:tp_bank/screens/number_phone_pay_screen.dart';
 import 'package:tp_bank/screens/transfer_screen.dart';
 import 'package:tp_bank/core/models/user_model.dart';
 import 'package:tp_bank/screens/qr_screen.dart';
 import 'package:tp_bank/screens/qr_scanner.dart';
 import 'package:tp_bank/screens/3g_4g_screen.dart';
+import 'package:tp_bank/screens/wallet_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
-
   const HomeScreen({super.key, required this.user});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -37,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final Color _accentColor = const Color.fromARGB(225, 184, 73, 232);
   final Color _backgroundColor = const Color(0xFFF8F9FA);
   final Color _cardColor = Colors.white;
-
   late List<Map<String, dynamic>> _services;
   final List<Map<String, dynamic>> _features = [
     {'icon': Icons.receipt, 'label': 'Thanh toán', 'color': Color(0xFF4CAF50)},
@@ -99,9 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       },
-
       {
-        'icon': Icons.help, // icon dấu chấm hỏi
+        'icon': Icons.help,
+        // icon dấu chấm hỏi
         'label': 'Thông tin TK',
         'color': Color.fromARGB(255, 205, 63, 231),
         'onTap': (BuildContext context, User user) {
@@ -114,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       },
     ];
-
     _fetchUserData();
   }
 
@@ -141,7 +140,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: Text('Ví điện tử'),
                 onTap: () {
                   Navigator.pop(context);
-                  _showComingSoon(context, 'Ví điện tử');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => WalletScreen()),
+                  );
                 },
               ),
               ListTile(
@@ -152,7 +154,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: Text('Tiền điện thoại'),
                 onTap: () {
                   Navigator.pop(context);
-                  _showComingSoon(context, 'Tiền điện thoại');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NumberPhonePayScreen(),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -194,7 +201,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = _apiUser ?? widget.user;
-
     if (_isLoading) {
       return Scaffold(
         backgroundColor: _backgroundColor,
@@ -205,7 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: AppBar(
@@ -375,9 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-            ),
-
-            // PROMO CARD
+            ), // PROMO CARD
             _buildCard(
               margin: EdgeInsets.all(16),
               child: Row(
@@ -417,9 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icon(Icons.chevron_right, color: Colors.grey[400]),
                 ],
               ),
-            ),
-
-            // GRID FEATURES
+            ), // GRID FEATURES
             _buildCard(
               margin: EdgeInsets.symmetric(horizontal: 16),
               padding: EdgeInsets.all(20),
@@ -444,6 +445,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         case 'Nạp tiền':
                           _showDepositOptions();
                           break;
+                        case 'Thẻ':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CardScreen(
+                                cards: [
+                                  {
+                                    'name': 'VISA CREDIT CLASSIC',
+                                    'status': 'Đang khóa',
+                                    'image': 'assets/visa_credit_card.png',
+                                    'number': '**** 8717',
+                                    'expiry': '12/27',
+                                    'type': 'Credit',
+                                  },
+                                  {
+                                    'name': 'ATM SMART 24/7',
+                                    'status': 'Đang hoạt động',
+                                    'image': 'assets/atm_card.png',
+                                    'number': '**** 5258',
+                                    'expiry': '06/28',
+                                    'type': 'Debit',
+                                  },
+                                ],
+                              ),
+                            ),
+                          );
+                          break;
                         default:
                           _showComingSoon(context, feature['label']);
                       }
@@ -452,14 +480,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-
             SizedBox(height: 16),
             _buildPromoSection('Quay ngay', 'Giao dịch trên App TPBank'),
             _buildPromoSection('SẢN VÉ EM XINH "SAY HI" CONCERT', ''),
           ],
         ),
       ),
-
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -504,7 +530,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
       floatingActionButton: Container(
         width: 56,
         height: 56,

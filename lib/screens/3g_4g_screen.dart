@@ -10,11 +10,20 @@ class WifiScreen extends StatefulWidget {
 
 class _WifiScreenState extends State<WifiScreen> {
   Map<String, String>? selectedPackage;
+  final TextEditingController phoneController = TextEditingController();
+  String? selectedNetwork;
 
   void selectPackage(Map<String, String> package) {
     setState(() {
       selectedPackage = package;
     });
+  }
+
+  void selectNetwork(String? network) {
+    setState(() {
+      selectedNetwork = network;
+    });
+    Navigator.pop(context);
   }
 
   @override
@@ -27,7 +36,7 @@ class _WifiScreenState extends State<WifiScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 65.0),
           child: const Text(
             'Nạp Data 3G,4G',
-            style: TextStyle(color: Colors.black, fontSize: 20),
+            style: TextStyle(color: Colors.black, fontSize: 18),
           ),
         ),
       ),
@@ -88,19 +97,92 @@ class _WifiScreenState extends State<WifiScreen> {
               // Số điện thoại và Nhà mạng
               Row(
                 children: [
-                  SizedBox(
-                    width: 195,
+                  Expanded(
                     child: _buildInputField(
                       icon: Icons.phone,
                       hint: 'Số điện thoại',
                       isNumber: true,
                       keyboardType: TextInputType.phone,
+                      controller: phoneController,
                     ),
                   ),
                   SizedBox(width: 10),
-                  SizedBox(
-                    width: 195,
-                    child: _buildInputField(icon: Icons.wifi, hint: 'Nhà mạng'),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          builder: (context) {
+                            final networks = [
+                              'Viettel',
+                              'Mobifone',
+                              'Vinaphone',
+                              'Vietnamobile',
+                            ];
+                            return Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Center(
+                                    child: Container(
+                                      width: 50,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    'Chọn nhà mạng',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  ...networks.map((network) {
+                                    return ListTile(
+                                      title: Text(network),
+                                      onTap: () => selectNetwork(network),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(Icons.wifi, color: Colors.purple),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                selectedNetwork ?? 'Nhà mạng',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                            Icon(Icons.arrow_drop_down, color: Colors.purple),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -127,13 +209,19 @@ class _WifiScreenState extends State<WifiScreen> {
               //gói cước 3 ngày
               Text('Gói 3 ngày', style: TextStyle(fontSize: 12)),
               SizedBox(height: 10),
-              _buildSinglePackage('15GB', '15,000 VND'),
+              _buildPackageRow([
+                {'data': '3GB', 'price': '15,000 VND'},
+                {'data': '5GB', 'price': '25,000 VND'},
+              ]),
               SizedBox(height: 20),
 
               //gói cước 7 ngày
               Text('Gói 7 ngày', style: TextStyle(fontSize: 12)),
               SizedBox(height: 10),
-              _buildSinglePackage('30GB', '30,000 VND'),
+              _buildPackageRow([
+                {'data': '5GB', 'price': '40,000 VND'},
+                {'data': '7GB', 'price': '60,000 VND'},
+              ]),
               SizedBox(height: 20),
 
               // gói cước 30 ngày
@@ -159,11 +247,22 @@ class _WifiScreenState extends State<WifiScreen> {
               ),
             ),
             onPressed: () {
+              final phone = phoneController.text.trim();
+              if (phoneController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Vui lòng nhập số điện thoại')),
+                );
+                return;
+              }
+              if (!RegExp(r'^[0-9]{10}$').hasMatch(phone)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Số điện thoại không hợp lệ')),
+                );
+                return;
+              }
               if (selectedPackage == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Vui lòng chọn gói cước trước khi tiếp tục'),
-                  ),
+                  SnackBar(content: Text('Vui lòng chọn gói cước')),
                 );
                 return;
               } else {
@@ -264,41 +363,6 @@ class _WifiScreenState extends State<WifiScreen> {
     );
   }
 
-  Widget _buildSinglePackage(String data, String price) {
-    final package = {'data': data, 'price': price};
-    final bool isSelected =
-        selectedPackage?['data'] == data && selectedPackage?['price'] == price;
-    return GestureDetector(
-      onTap: () => selectPackage(package),
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        margin: EdgeInsets.only(right: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.amber[100] : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? Colors.amber : Colors.transparent,
-            width: 2,
-          ),
-        ),
-        height: 50,
-
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                data,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-              Text(price, style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildPackageRow(List<Map<String, String>> packages) {
     return Row(
       children: packages.map((package) {
@@ -352,6 +416,7 @@ Widget _buildInputField({
   required String hint,
   TextInputType? keyboardType,
   bool isNumber = false,
+  TextEditingController? controller,
 }) {
   return Container(
     height: 60,
@@ -369,6 +434,7 @@ Widget _buildInputField({
           SizedBox(width: 10),
           Expanded(
             child: TextField(
+              controller: controller,
               style: TextStyle(fontSize: 12),
               decoration: InputDecoration(
                 border: InputBorder.none,

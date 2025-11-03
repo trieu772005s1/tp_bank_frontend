@@ -24,6 +24,7 @@ dependencies:
   http: ^1.5.0
   camera: ^0.11.2
   marquee: ^2.3.0
+  ai_barcode_scanner: ^7.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -36,6 +37,7 @@ dev_dependencies:
   camera: ^0.11.2
   path_provider: ^2.1.5  
   blurred_overlay: ^1.0.3
+  shared_preferences: ^2.3.2
 
 flutter:
 

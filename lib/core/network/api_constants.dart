@@ -1,14 +1,13 @@
 class ApiConstants {
   // BASE URL
-  static const String baseUrl = "https://api.tpbank.com.vn";
-
+  static const String baseUrl = "https://t8r687h7-4000.asse.devtunnels.ms";
   // verson
   static const String version = "/api/v1";
 
   // AUTHENTICATION (Đăng nhập / Đăng ký / Token)
 
   static const String auth = "$version/auth";
-  static const String login = "$auth/login";
+  static const String login = "/login";
   static const String register = "$auth/register";
   static const String logout = "$auth/logout";
   static const String refreshToken = "$auth/refresh";

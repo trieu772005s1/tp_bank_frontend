@@ -517,7 +517,7 @@ class _TransferScreenState extends State<TransferScreen> {
       ),
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
-        BoxShadow(color: Colors.purple.withOpacity(0.3), blurRadius: 10),
+        BoxShadow(color: Colors.purple.withValues(alpha: 0.3), blurRadius: 10),
       ],
     ),
     child: Column(

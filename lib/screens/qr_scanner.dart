@@ -1,139 +1,158 @@
+import 'dart:ui';
+import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 
-class QRScannerScreen extends StatefulWidget {
+class QRScannerScreen extends StatelessWidget {
   const QRScannerScreen({super.key});
 
   @override
-  State<QRScannerScreen> createState() => _QRScannerScreenState();
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        AiBarcodeScanner(
+          onDetect: (BarcodeCapture capture) {
+            final code = capture.barcodes.first.rawValue;
+            if (code != null) {
+              Navigator.pop(context, code);
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('QR: $code')));
+            }
+          },
+
+          appBarBuilder: (context, controller) {
+            return AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              centerTitle: true,
+              title: const Text(
+                "Đặt mã QR vào khung để quét tự động",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.flash_on, color: Colors.white),
+                  onPressed: () => controller.toggleTorch(),
+                ),
+              ],
+            );
+          },
+
+          galleryButtonType: GalleryButtonType.icon,
+          galleryButtonText: "Chọn ảnh",
+          overlayConfig: const ScannerOverlayConfig(
+            scannerOverlayBackground: ScannerOverlayBackground.none,
+            scannerBorder: ScannerBorder.none,
+          ),
+        ),
+
+        const _TPBankOverlay(),
+      ],
+    );
+  }
 }
 
-class _QRScannerScreenState extends State<QRScannerScreen> {
-  final MobileScannerController controller = MobileScannerController();
+class _TPBankOverlay extends StatelessWidget {
+  const _TPBankOverlay();
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final scanArea = 250.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    return Scaffold(
-      body: Stack(
-        children: [
-          MobileScanner(
-            controller: controller,
-            fit: BoxFit.cover,
-            scanWindow: Rect.fromCenter(
-              center: center,
-              width: scanArea,
-              height: scanArea,
-            ),
-            onDetect: (barcodeCapture) {
-              final barcode = barcodeCapture.barcodes.first;
-              final String? code = barcode.rawValue;
-              if (code != null) {
-                debugPrint('QR code: $code');
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('QR: $code')));
-              }
-            },
-          ),
+    final double scanBox = size.width * 0.65;
 
-          Positioned.fill(
-            child: CustomPaint(painter: _ScannerOverlayPainter(scanArea)),
-          ),
-          Align(
-            alignment: Alignment(0, -0.75),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      iconSize: 30,
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.close, color: Colors.white),
-                    ),
-                    SizedBox(width: 30),
-                    Text(
-                      'Đặt mã QR vào đây để quét mã',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ],
-                ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: CustomPaint(painter: _BlurBackgroundPainter(scanBox)),
+        ),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'TP',
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 109, 32, 175),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                      ),
-                    ),
-                    Text(
-                      'Bank',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 109, 32, 175),
-                        fontSize: 30,
-                      ),
-                    ),
-                    SizedBox(width: 20),
-                    Text(
-                      'V',
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 173, 31, 31),
-                        fontSize: 30,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      'IETQR',
-                      style: TextStyle(color: Colors.white, fontSize: 25),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 40),
-                const _PartnerBanner(),
-                SizedBox(height: 450),
-                Text('hello'),
-              ],
+        Align(
+          alignment: Alignment.center,
+          child: Container(
+            width: scanBox,
+            height: scanBox,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white, width: 3),
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
-        ],
-      ),
+        ),
+
+        Align(
+          alignment: const Alignment(0, -0.65),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                'TP',
+                style: TextStyle(
+                  color: Color(0xFF6D20AF),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                ),
+              ),
+              Text(
+                'Bank',
+                style: TextStyle(color: Color(0xFF6D20AF), fontSize: 32),
+              ),
+              SizedBox(width: 20),
+              Text(
+                'V',
+                style: TextStyle(
+                  color: Color(0xFFB71C1C),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                ),
+              ),
+              Text(
+                'IETQR',
+                style: TextStyle(color: Colors.white, fontSize: 26),
+              ),
+            ],
+          ),
+        ),
+
+        const Align(alignment: Alignment(0, 0.7), child: _PartnerBanner()),
+      ],
     );
   }
 }
 
-class _ScannerOverlayPainter extends CustomPainter {
-  final double scanArea;
-  _ScannerOverlayPainter(this.scanArea);
+class _BlurBackgroundPainter extends CustomPainter {
+  final double scanBox;
+  _BlurBackgroundPainter(this.scanBox);
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withValues(alpha: 0.5);
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
     final cutOutRect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
-      width: scanArea,
-      height: scanArea,
+      width: scanBox,
+      height: scanBox,
     );
 
-    canvas.drawRect(rect, paint);
-    paint.blendMode = BlendMode.clear;
-    canvas.drawRect(cutOutRect, paint);
+    final paint = Paint()
+      ..imageFilter = ImageFilter.blur(sigmaX: 10, sigmaY: 10)
+      ..color = Colors.black.withValues(alpha: 0.5)
+      ..blendMode = BlendMode.srcOver;
 
-    paint.blendMode = BlendMode.srcOver;
-    paint.color = Colors.white;
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 3;
-    canvas.drawRect(cutOutRect, paint);
+    canvas.saveLayer(rect, Paint());
+    canvas.drawRect(rect, paint);
+
+    paint.blendMode = BlendMode.clear;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(cutOutRect, const Radius.circular(16)),
+      paint,
+    );
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _PartnerBanner extends StatefulWidget {
@@ -144,14 +163,15 @@ class _PartnerBanner extends StatefulWidget {
 
 class _PartnerBannerState extends State<_PartnerBanner>
     with SingleTickerProviderStateMixin {
-  late ScrollController _controller;
-  late AnimationController _animationController;
+  late final ScrollController _controller;
+  late final AnimationController _animationController;
+
   @override
   void initState() {
     super.initState();
     _controller = ScrollController();
     _animationController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 20))
+        AnimationController(vsync: this, duration: const Duration(seconds: 25))
           ..addListener(() {
             if (_controller.hasClients) {
               _controller.jumpTo(
@@ -178,13 +198,14 @@ class _PartnerBannerState extends State<_PartnerBanner>
       'assets/napas.png',
       'assets/payoo.png',
     ];
+
     return SizedBox(
       height: 40,
       child: ListView.separated(
         controller: _controller,
         scrollDirection: Axis.horizontal,
         itemCount: logos.length * 3,
-        separatorBuilder: (_, _) => const SizedBox(width: 30),
+        separatorBuilder: (_, __) => const SizedBox(width: 30),
         itemBuilder: (_, i) {
           final logo = logos[i % logos.length];
           return Image.asset(logo, height: 30);
